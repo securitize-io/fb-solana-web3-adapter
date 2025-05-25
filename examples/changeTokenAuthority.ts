@@ -22,8 +22,8 @@ const main = async () => {
   
   // Configure connection to source vault account
   const sourceFireblocksConnectionConfig: FireblocksConnectionAdapterConfig = {
-    apiKey: process.env.FIREBLOCKS_API_KEY,
-    apiSecretPath: process.env.FIREBLOCKS_API_SECRET_PATH,
+    apiKey: process.env.FIREBLOCKS_API_KEY!,
+    apiSecretPath: process.env.FIREBLOCKS_API_SECRET_PATH!,
     vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID,
     feeLevel: FeeLevel.HIGH,
     silent: false,
@@ -31,8 +31,8 @@ const main = async () => {
 
   // Configure connection to destination vault account
   const destFireblocksConnectionConfig: FireblocksConnectionAdapterConfig = {
-    apiKey: process.env.FIREBLOCKS_API_KEY,
-    apiSecretPath: process.env.FIREBLOCKS_API_SECRET_PATH,
+    apiKey: process.env.FIREBLOCKS_API_KEY!,
+    apiSecretPath: process.env.FIREBLOCKS_API_SECRET_PATH!,
     vaultAccountId: process.env.FIREBLOCKS_NEW_AUTHORITY_VAULT_ID,
     feeLevel: FeeLevel.HIGH,
     silent: false,
@@ -68,7 +68,7 @@ const main = async () => {
 
   // Create a single transaction with all instructions
   const transaction = new Transaction();
-  const tokenAccountsProcessed = [];
+  const tokenAccountsProcessed: string[] = [];
 
   // Add instructions for all token accounts to the transaction
   for (let i = 0; i < tokenAccounts.value.length; i++) {

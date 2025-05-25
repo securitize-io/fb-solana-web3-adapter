@@ -35,9 +35,9 @@ class RaydiumSwap {
     const connection = await FireblocksConnectionAdapter.create(
       RPC_URL || clusterApiUrl("mainnet-beta"),
       {
-        apiKey: process.env.FIREBLOCKS_API_KEY,
-        apiSecretPath: process.env.FIREBLOCKS_SECRET_KEY_PATH,
-        vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID,
+        apiKey: process.env.FIREBLOCKS_API_KEY!,
+        apiSecretPath: process.env.FIREBLOCKS_SECRET_KEY_PATH!,
+        vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID!,
       }
     );
     return new RaydiumSwap(connection);

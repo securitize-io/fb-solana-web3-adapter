@@ -34,7 +34,13 @@ export type AssetId = typeof ASSET_IDS[keyof typeof ASSET_IDS];
  *
  * pollingInterval?: number - Fireblocks API polling interval for tx status updates
  * 
+ * waitForFireblocksConfirmation?: boolean - Whether to wait for Fireblocks confirmation before returning the transaction. Default and recommended is true.
+ * 
  * feeLevel?: LOW | MEDIUM | HIGH - Fee level to use for transactions
+ * 
+ * logger?: pass custom logger
+ * 
+ * silent?: boolean - Whether to suppress logging output. Default is false, which means verbose logging is enabled.
  */
 export interface FireblocksConnectionAdapterConfig {
   readonly apiKey: string;
@@ -43,10 +49,9 @@ export interface FireblocksConnectionAdapterConfig {
   readonly vaultAccountId: string | number;
   devnet?: boolean;
   readonly pollingInterval?: number;
+  readonly waitForFireblocksConfirmation?: boolean;
   readonly feeLevel?: FeeLevel;
   readonly logger?: Logger;
-  readonly maxRetries?: number;
-  readonly retryDelay?: number;
   readonly silent?: boolean;
 }
 

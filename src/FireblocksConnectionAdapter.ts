@@ -23,7 +23,6 @@ import {
   TransactionOrVersionedTransaction,
   Logger
 } from "./types";
-import { DefaultLogger } from "./logger";
 import { waitForSignature } from "./helpers";
 import { ASSET_IDS, API_BASE_URLS } from "./types";
 
@@ -51,6 +50,7 @@ export class FireblocksConnectionAdapter extends Connection {
     commitment?: Commitment,
   ) {
     super(endpoint, { commitment });
+    this.validateConfig(config);
     this.fireblocksApiClient = fireblocksClient;
     this.adapterConfig = config;
     this.devnet = config.devnet ?? false;
@@ -101,9 +101,6 @@ export class FireblocksConnectionAdapter extends Connection {
         config.apiKey,
         API_BASE_URLS.PRODUCTION
       );
-
-      const environment = endpoint.split(".")[1];
-      config.devnet = environment === "devnet" || environment === "testnet";
 
       const adapter = new FireblocksConnectionAdapter(
         fireblocksClient,
@@ -284,6 +281,7 @@ export class FireblocksConnectionAdapter extends Connection {
         fbTxResponse,
         this.fireblocksApiClient,
         this.adapterConfig.pollingInterval || 3000,
+        this.adapterConfig.waitForFireblocksConfirmation === undefined ? true : this.adapterConfig.waitForFireblocksConfirmation,
         this.logger
       );
 

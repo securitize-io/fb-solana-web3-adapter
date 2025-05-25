@@ -15,7 +15,7 @@ require("dotenv").config();
 const DEFAULT_POLLING_INTERVAL = 2000;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
-const waitForSignature = (tx_1, fireblocksApiClient_1, ...args_1) => __awaiter(void 0, [tx_1, fireblocksApiClient_1, ...args_1], void 0, function* (tx, fireblocksApiClient, pollingInterval = DEFAULT_POLLING_INTERVAL, logger) {
+const waitForSignature = (tx_1, fireblocksApiClient_1, ...args_1) => __awaiter(void 0, [tx_1, fireblocksApiClient_1, ...args_1], void 0, function* (tx, fireblocksApiClient, pollingInterval = DEFAULT_POLLING_INTERVAL, waitForFireblocksConfirmation, logger) {
     const failedStatuses = new Set([
         fireblocks_sdk_1.TransactionStatus.BLOCKED,
         fireblocks_sdk_1.TransactionStatus.CANCELLED,
@@ -25,9 +25,11 @@ const waitForSignature = (tx_1, fireblocksApiClient_1, ...args_1) => __awaiter(v
     let retries = 0;
     let txResponse = yield fireblocksApiClient.getTransactionById(tx.id);
     let lastStatus = txResponse.status;
+    logger === null || logger === void 0 ? void 0 : logger.debug(`Got waitForFireblocksConfirmation: ${waitForFireblocksConfirmation}`);
     logger === null || logger === void 0 ? void 0 : logger.debug(`Transaction ${txResponse.id} status: ${txResponse.status}`);
-    while (txResponse.status !== fireblocks_sdk_1.TransactionStatus.COMPLETED &&
-        txResponse.status !== fireblocks_sdk_1.TransactionStatus.BROADCASTING) {
+    while (waitForFireblocksConfirmation
+        ? (txResponse.status !== fireblocks_sdk_1.TransactionStatus.COMPLETED)
+        : (txResponse.status !== fireblocks_sdk_1.TransactionStatus.BROADCASTING)) {
         if (failedStatuses.has(txResponse.status)) {
             throw new Error(`Transaction ${txResponse.id} failed with status ${txResponse.status} (${txResponse.subStatus})`);
         }

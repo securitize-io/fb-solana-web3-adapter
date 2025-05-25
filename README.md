@@ -95,6 +95,7 @@ See the [examples](https://github.com/fireblocks/solana-web3-provider/tree/main/
  pollingInterval?: number - Fireblocks API polling interval for tx status updates
  feeLevel?: FeeLevel - Fee level to use for transactions (optional, defaults to MEDIUM)
  silent?: boolean - Whether to suppress logging (optional, defaults to false)
+ waitForFireblocksConfirmation?: boolean - Wait for Fireblocks final COMPLETED status or return the txHash once the transaction is in BROADCASTING (optional, defaults to true)
 ```
 
 

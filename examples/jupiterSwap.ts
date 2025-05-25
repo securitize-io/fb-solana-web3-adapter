@@ -15,9 +15,9 @@ const JUPITER_CONFIG = {
 
 // Fireblocks Adapter Configuration
 const connectionConfig: FireblocksConnectionAdapterConfig = {
-  apiKey: process.env.FIREBLOCKS_API_KEY,
-  apiSecretPath: process.env.FIREBLOCKS_SECRET_KEY_PATH,
-  vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID,
+  apiKey: process.env.FIREBLOCKS_API_KEY!,
+  apiSecretPath: process.env.FIREBLOCKS_SECRET_KEY_PATH!,
+  vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID!,
   silent: false
 };
 
