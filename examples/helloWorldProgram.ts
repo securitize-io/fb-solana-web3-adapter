@@ -16,9 +16,9 @@ async function helloWorldProgram() {
   );
 
   const fireblocksConnectionConfig: FireblocksConnectionAdapterConfig = {
-    apiKey: process.env.FIREBLOCKS_API_KEY,
-    apiSecretPath: process.env.FIREBLOCKS_SECRET_KEY_PATH,
-    vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID,
+    apiKey: process.env.FIREBLOCKS_API_KEY!,
+    apiSecretPath: process.env.FIREBLOCKS_SECRET_KEY_PATH!,
+    vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID!,
   };
 
   const connection = await FireblocksConnectionAdapter.create(

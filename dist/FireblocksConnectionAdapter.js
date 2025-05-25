@@ -57,6 +57,7 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
         this.getAccount = () => {
             return this.account;
         };
+        this.validateConfig(config);
         this.fireblocksApiClient = fireblocksClient;
         this.adapterConfig = config;
         this.devnet = (_a = config.devnet) !== null && _a !== void 0 ? _a : false;
@@ -95,8 +96,6 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
             try {
                 const fireblocksSecretKey = yield fs_1.default.promises.readFile(config.apiSecretPath, "utf-8");
                 const fireblocksClient = new fireblocks_sdk_1.FireblocksSDK(fireblocksSecretKey, config.apiKey, types_1.API_BASE_URLS.PRODUCTION);
-                const environment = endpoint.split(".")[1];
-                config.devnet = environment === "devnet" || environment === "testnet";
                 const adapter = new FireblocksConnectionAdapter(fireblocksClient, endpoint, config, commitment);
                 yield adapter.setAccount(config.vaultAccountId, config.devnet);
                 adapter.setExternalTxId(null);
@@ -210,7 +209,7 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
                 }
                 const fbTxResponse = yield this.signWithFireblocks(transaction);
                 this.logger.debug('Waiting for transaction confirmation');
-                const finalTxResponse = yield (0, helpers_1.waitForSignature)(fbTxResponse, this.fireblocksApiClient, this.adapterConfig.pollingInterval || 3000, this.logger);
+                const finalTxResponse = yield (0, helpers_1.waitForSignature)(fbTxResponse, this.fireblocksApiClient, this.adapterConfig.pollingInterval || 3000, this.adapterConfig.waitForFireblocksConfirmation === undefined ? true : this.adapterConfig.waitForFireblocksConfirmation, this.logger);
                 if (!finalTxResponse.txHash) {
                     throw new Error('Transaction hash not found in Fireblocks response');
                 }

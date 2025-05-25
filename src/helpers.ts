@@ -16,7 +16,8 @@ export const waitForSignature = async (
   tx: CreateTransactionResponse,
   fireblocksApiClient: FireblocksSDK,
   pollingInterval: number = DEFAULT_POLLING_INTERVAL,
-  logger?: Logger
+  waitForFireblocksConfirmation: boolean,
+  logger?: Logger,
 ): Promise<TransactionResponse> => {
   const failedStatuses = new Set([
     TransactionStatus.BLOCKED,
@@ -28,12 +29,13 @@ export const waitForSignature = async (
   let retries = 0;
   let txResponse = await fireblocksApiClient.getTransactionById(tx.id);
   let lastStatus = txResponse.status;
-
+  logger?.debug(`Got waitForFireblocksConfirmation: ${waitForFireblocksConfirmation}`);
   logger?.debug(`Transaction ${txResponse.id} status: ${txResponse.status}`);
 
   while (
-    txResponse.status !== TransactionStatus.COMPLETED &&
-    txResponse.status !== TransactionStatus.BROADCASTING
+    waitForFireblocksConfirmation 
+    ? (txResponse.status !== TransactionStatus.COMPLETED )
+    : (txResponse.status !== TransactionStatus.BROADCASTING) 
   ) {
     if (failedStatuses.has(txResponse.status)) {
       throw new Error(
