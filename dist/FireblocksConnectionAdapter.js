@@ -90,19 +90,21 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
      */
     static create(endpoint, config, commitment) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             if (!endpoint) {
                 throw new Error('Endpoint is required');
             }
             try {
-                const fireblocksSecretKey = yield fs_1.default.promises.readFile(config.apiSecretPath, "utf-8");
+                const fireblocksSecretKey = yield fs_1.default.promises.readFile(config.apiSecretPath, 'utf-8');
                 const fireblocksClient = new fireblocks_sdk_1.FireblocksSDK(fireblocksSecretKey, config.apiKey, types_1.API_BASE_URLS.PRODUCTION);
                 const adapter = new FireblocksConnectionAdapter(fireblocksClient, endpoint, config, commitment);
-                yield adapter.setAccount(config.vaultAccountId, config.devnet);
+                yield adapter.setAccount(config.vaultAccountId, (_a = config.devnet) !== null && _a !== void 0 ? _a : false);
                 adapter.setExternalTxId(null);
                 return adapter;
             }
             catch (error) {
-                throw new Error(`Failed to initialize Fireblocks client: ${error.message}`);
+                const msg = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(`Failed to initialize Fireblocks client: ${msg}`);
             }
         });
     }
@@ -133,7 +135,7 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.debug('Preparing to sign transaction with Fireblocks', {
                 feePayer: this.account,
-                feeLevel: this.feeLevel
+                feeLevel: this.feeLevel,
             });
             try {
                 if (!transaction) {
@@ -142,16 +144,16 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
                 const serializedTx = transaction.serialize({ requireAllSignatures: false });
                 const payload = {
                     assetId: this.assetId,
-                    operation: "PROGRAM_CALL",
+                    operation: 'PROGRAM_CALL',
                     feeLevel: this.feeLevel,
                     source: {
                         type: fireblocks_sdk_1.PeerType.VAULT_ACCOUNT,
                         id: String(this.adapterConfig.vaultAccountId),
                     },
-                    note: this.txNote || "Created by Solana Web3 Adapter",
+                    note: this.txNote || 'Created by Solana Web3 Adapter',
                     extraParameters: {
-                        programCallData: Buffer.from(serializedTx).toString("base64")
-                    }
+                        programCallData: Buffer.from(serializedTx).toString('base64'),
+                    },
                 };
                 if (this.externalTxId) {
                     payload.externalTxId = this.externalTxId;
@@ -160,12 +162,13 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
                 const tx = yield this.createFireblocksTransaction(payload);
                 this.logger.info('Transaction submitted to Fireblocks', {
                     transactionId: tx.id,
-                    status: tx.status
+                    status: tx.status,
                 });
                 return tx;
             }
             catch (error) {
-                throw new Error(`Failed to sign transaction with Fireblocks: ${error.message}`);
+                const msg = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(`Failed to sign transaction with Fireblocks: ${msg}`);
             }
         });
     }
@@ -173,7 +176,7 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
         return __awaiter(this, void 0, void 0, function* () {
             return {
                 context: { slot: 0 },
-                value: { err: null }
+                value: { err: null },
             };
         });
     }
@@ -209,13 +212,15 @@ class FireblocksConnectionAdapter extends web3_js_1.Connection {
                 }
                 const fbTxResponse = yield this.signWithFireblocks(transaction);
                 this.logger.debug('Waiting for transaction confirmation');
-                const finalTxResponse = yield (0, helpers_1.waitForSignature)(fbTxResponse, this.fireblocksApiClient, this.adapterConfig.pollingInterval || 3000, this.adapterConfig.waitForFireblocksConfirmation === undefined ? true : this.adapterConfig.waitForFireblocksConfirmation, this.logger);
+                const finalTxResponse = yield (0, helpers_1.waitForSignature)(fbTxResponse, this.fireblocksApiClient, this.adapterConfig.pollingInterval || 3000, this.adapterConfig.waitForFireblocksConfirmation === undefined
+                    ? true
+                    : this.adapterConfig.waitForFireblocksConfirmation, this.logger);
                 if (!finalTxResponse.txHash) {
                     throw new Error('Transaction hash not found in Fireblocks response');
                 }
                 this.logger.info('Transaction confirmed', {
                     txHash: finalTxResponse.txHash,
-                    status: finalTxResponse.status
+                    status: finalTxResponse.status,
                 });
                 return finalTxResponse.txHash;
             }

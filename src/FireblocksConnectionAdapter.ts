@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from 'fs';
 import {
   Connection,
   PublicKey,
@@ -6,8 +6,8 @@ import {
   Commitment,
   SignatureResult,
   RpcResponseAndContext,
-  Transaction
-} from "@solana/web3.js";
+  Transaction,
+} from '@solana/web3.js';
 
 import {
   CreateTransactionResponse,
@@ -16,15 +16,10 @@ import {
   PeerType,
   TransactionArguments,
   TransactionOperation,
-} from "fireblocks-sdk";
-import {
-  AssetId,
-  FireblocksConnectionAdapterConfig,
-  TransactionOrVersionedTransaction,
-  Logger
-} from "./types";
-import { waitForSignature } from "./helpers";
-import { ASSET_IDS, API_BASE_URLS } from "./types";
+} from 'fireblocks-sdk';
+import { AssetId, FireblocksConnectionAdapterConfig, TransactionOrVersionedTransaction, Logger } from './types';
+import { waitForSignature } from './helpers';
+import { ASSET_IDS, API_BASE_URLS } from './types';
 
 /**
  * Fireblocks Solana Web3 Connection Adapter Class
@@ -56,7 +51,7 @@ export class FireblocksConnectionAdapter extends Connection {
     this.devnet = config.devnet ?? false;
     this.assetId = this.devnet ? ASSET_IDS.SOLANA_DEVNET : ASSET_IDS.SOLANA_MAINNET;
     this.feeLevel = config.feeLevel || FeeLevel.MEDIUM;
-    
+
     // Create logger with verbose output by default unless silent is true
     const isSilent = config.silent ?? false;
     this.logger = {
@@ -71,7 +66,7 @@ export class FireblocksConnectionAdapter extends Connection {
     if (!config.apiKey || !config.apiSecretPath || !config.vaultAccountId) {
       throw new Error('Missing required configuration parameters');
     }
-    
+
     if (!fs.existsSync(config.apiSecretPath)) {
       throw new Error(`API secret file not found at path: ${config.apiSecretPath}`);
     }
@@ -95,26 +90,18 @@ export class FireblocksConnectionAdapter extends Connection {
     }
 
     try {
-      const fireblocksSecretKey = await fs.promises.readFile(config.apiSecretPath, "utf-8");
-      const fireblocksClient = new FireblocksSDK(
-        fireblocksSecretKey,
-        config.apiKey,
-        API_BASE_URLS.PRODUCTION
-      );
+      const fireblocksSecretKey = await fs.promises.readFile(config.apiSecretPath, 'utf-8');
+      const fireblocksClient = new FireblocksSDK(fireblocksSecretKey, config.apiKey, API_BASE_URLS.PRODUCTION);
 
-      const adapter = new FireblocksConnectionAdapter(
-        fireblocksClient,
-        endpoint,
-        config,
-        commitment,
-      );
+      const adapter = new FireblocksConnectionAdapter(fireblocksClient, endpoint, config, commitment);
 
-      await adapter.setAccount(config.vaultAccountId, config.devnet);
+      await adapter.setAccount(config.vaultAccountId, config.devnet ?? false);
       adapter.setExternalTxId(null);
 
       return adapter;
     } catch (error) {
-      throw new Error(`Failed to initialize Fireblocks client: ${error.message}`);
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to initialize Fireblocks client: ${msg}`);
     }
   }
 
@@ -150,10 +137,7 @@ export class FireblocksConnectionAdapter extends Connection {
     return this.externalTxId;
   };
 
-  private async setAccount(
-    vaultAccount: number[] | string[] | string | number,
-    devnet: boolean,
-  ): Promise<void> {
+  private async setAccount(vaultAccount: number[] | string[] | string | number, devnet: boolean): Promise<void> {
     try {
       const solWallet = await this.fireblocksApiClient.getDepositAddresses(
         String(vaultAccount),
@@ -179,12 +163,10 @@ export class FireblocksConnectionAdapter extends Connection {
     return this.account;
   };
 
-  private async signWithFireblocks(
-    transaction: TransactionOrVersionedTransaction
-  ): Promise<CreateTransactionResponse> {
+  private async signWithFireblocks(transaction: TransactionOrVersionedTransaction): Promise<CreateTransactionResponse> {
     this.logger.debug('Preparing to sign transaction with Fireblocks', {
       feePayer: this.account,
-      feeLevel: this.feeLevel
+      feeLevel: this.feeLevel,
     });
 
     try {
@@ -193,19 +175,19 @@ export class FireblocksConnectionAdapter extends Connection {
       }
 
       const serializedTx = transaction.serialize({ requireAllSignatures: false });
-            
+
       const payload: TransactionArguments = {
         assetId: this.assetId,
-        operation: "PROGRAM_CALL" as TransactionOperation,
+        operation: 'PROGRAM_CALL' as TransactionOperation,
         feeLevel: this.feeLevel,
         source: {
           type: PeerType.VAULT_ACCOUNT,
           id: String(this.adapterConfig.vaultAccountId),
         },
-        note: this.txNote || "Created by Solana Web3 Adapter",
+        note: this.txNote || 'Created by Solana Web3 Adapter',
         extraParameters: {
-          programCallData: Buffer.from(serializedTx).toString("base64")
-        }
+          programCallData: Buffer.from(serializedTx).toString('base64'),
+        },
       };
 
       if (this.externalTxId) {
@@ -218,22 +200,23 @@ export class FireblocksConnectionAdapter extends Connection {
 
       this.logger.info('Transaction submitted to Fireblocks', {
         transactionId: tx.id,
-        status: tx.status
+        status: tx.status,
       });
 
       return tx;
     } catch (error) {
-      throw new Error(`Failed to sign transaction with Fireblocks: ${error.message}`);
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to sign transaction with Fireblocks: ${msg}`);
     }
   }
 
   public async confirmTransaction(
     signatureOrConfig: string | { signature: string },
-    commitment?: Commitment
+    commitment?: Commitment,
   ): Promise<RpcResponseAndContext<SignatureResult>> {
     return {
       context: { slot: 0 },
-      value: { err: null }
+      value: { err: null },
     };
   }
 
@@ -243,8 +226,6 @@ export class FireblocksConnectionAdapter extends Connection {
     options?: SendOptions,
   ): Promise<string> {
     try {
-      
-      
       if (transaction instanceof Transaction) {
         if (!transaction.recentBlockhash) {
           const { blockhash } = await this.getLatestBlockhash();
@@ -272,28 +253,30 @@ export class FireblocksConnectionAdapter extends Connection {
           }
         }
       }
-      
+
       const fbTxResponse = await this.signWithFireblocks(transaction);
-      
+
       this.logger.debug('Waiting for transaction confirmation');
-      
+
       const finalTxResponse = await waitForSignature(
         fbTxResponse,
         this.fireblocksApiClient,
         this.adapterConfig.pollingInterval || 3000,
-        this.adapterConfig.waitForFireblocksConfirmation === undefined ? true : this.adapterConfig.waitForFireblocksConfirmation,
-        this.logger
+        this.adapterConfig.waitForFireblocksConfirmation === undefined
+          ? true
+          : this.adapterConfig.waitForFireblocksConfirmation,
+        this.logger,
       );
 
       if (!finalTxResponse.txHash) {
         throw new Error('Transaction hash not found in Fireblocks response');
       }
-      
-      this.logger.info('Transaction confirmed', { 
+
+      this.logger.info('Transaction confirmed', {
         txHash: finalTxResponse.txHash,
-        status: finalTxResponse.status
+        status: finalTxResponse.status,
       });
-      
+
       return finalTxResponse.txHash;
     } catch (error) {
       this.logger.error('Transaction failed', error as Error);
@@ -318,9 +301,7 @@ export class FireblocksConnectionAdapter extends Connection {
   }
 
   // Add protected methods to allow mocking in tests
-  protected async createFireblocksTransaction(
-    payload: TransactionArguments
-  ): Promise<CreateTransactionResponse> {
+  protected async createFireblocksTransaction(payload: TransactionArguments): Promise<CreateTransactionResponse> {
     return this.fireblocksApiClient.createTransaction(payload);
   }
 
