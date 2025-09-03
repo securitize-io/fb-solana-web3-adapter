@@ -1,12 +1,5 @@
-import {
-  CreateTransactionResponse,
-  FireblocksSDK,
-  TransactionResponse,
-  TransactionStatus,
-} from "fireblocks-sdk";
-import { Logger } from "./types";
-
-require("dotenv").config();
+import { CreateTransactionResponse, FireblocksSDK, TransactionResponse, TransactionStatus } from 'fireblocks-sdk';
+import { Logger } from './types';
 
 const DEFAULT_POLLING_INTERVAL = 2000;
 const MAX_RETRIES = 3;
@@ -33,14 +26,12 @@ export const waitForSignature = async (
   logger?.debug(`Transaction ${txResponse.id} status: ${txResponse.status}`);
 
   while (
-    waitForFireblocksConfirmation 
-    ? (txResponse.status !== TransactionStatus.COMPLETED )
-    : (txResponse.status !== TransactionStatus.BROADCASTING) 
+    waitForFireblocksConfirmation
+      ? txResponse.status !== TransactionStatus.COMPLETED
+      : txResponse.status !== TransactionStatus.BROADCASTING
   ) {
     if (failedStatuses.has(txResponse.status)) {
-      throw new Error(
-        `Transaction ${txResponse.id} failed with status ${txResponse.status} (${txResponse.subStatus})`
-      );
+      throw new Error(`Transaction ${txResponse.id} failed with status ${txResponse.status} (${txResponse.subStatus})`);
     }
 
     await new Promise((resolve) => setTimeout(resolve, pollingInterval));
@@ -62,4 +53,3 @@ export const waitForSignature = async (
 
   return txResponse;
 };
-
